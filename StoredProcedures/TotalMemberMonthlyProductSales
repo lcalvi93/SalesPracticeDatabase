@@ -1,0 +1,41 @@
+USE [SalesPracticeDB]
+GO
+/****** Object:  StoredProcedure [dbo].[TotalMemberMonthlyProductSales]    Script Date: 27/05/2024 1:40:39 PM ******/
+--Author: Lauren Calvi
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[TotalMemberMonthlyProductSales] AS 
+BEGIN
+	BEGIN TRY 
+		SELECT 
+			M.MemberCode, 
+			M.MemberFirstName,
+			M.MemberSurname, 
+			YEAR(S.SaleDate) AS SaleYear, 
+			DATENAME(Month,S.SaleDate) AS SaleMonth,
+			P.ProductName, 
+			SUM(SI.LineTotal) AS ProductAmount, 
+			COUNT(SI.Quantity) AS ProductQuantity
+		FROM 
+			Member AS M 
+		INNER JOIN 
+			Sale AS S ON M.MemberID = S.MemberID 
+		INNER JOIN 
+			SaleItem AS SI ON S.SaleID = SI.SaleID 
+		INNER JOIN 
+			Product AS P ON SI.ProductID = P.ProductID 
+		GROUP BY 
+			M.MemberCode,
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate), 
+			DATENAME(Month, S.SaleDate),
+			P.ProductName
+		END TRY
+		BEGIN CATCH 
+			PRINT 'An error occurred: ' + ERROR_MESSAGE();
+
+		END CATCH
+	END; 
