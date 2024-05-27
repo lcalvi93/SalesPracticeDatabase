@@ -3,7 +3,7 @@ GO
 /****** Object:  Database [SalesPracticeDB]    Script Date: 27/05/2024 1:22:28 PM ******/
 --Author: Lauren Calvi 2024
 --You may need to adjust the file location on row 10 and 12.
---It creates a user for sql server authentication with credentials provided here: 
+--It creates a user for sql server authentication with credentials provided here: https://github.com/lcalvi93/SalesPracticeDatabase/blob/main/Credentials
 
 CREATE DATABASE [SalesPracticeDB]
  CONTAINMENT = NONE
