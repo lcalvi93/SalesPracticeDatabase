@@ -1,0 +1,702 @@
+USE [master]
+GO
+/****** Object:  Database [SalesPracticeDB]    Script Date: 27/05/2024 1:22:28 PM ******/
+--Author: Lauren Calvi 2024
+--You may need to adjust the file location on row 10 and 12.
+--It creates a user for sql server authentication with credentials provided here: 
+
+CREATE DATABASE [SalesPracticeDB]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'SalesPracticeDB', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\SalesPracticeDB.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON 
+( NAME = N'SalesPracticeDB_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\SalesPracticeDB_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+GO
+ALTER DATABASE [SalesPracticeDB] SET COMPATIBILITY_LEVEL = 160
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [SalesPracticeDB].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [SalesPracticeDB] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET AUTO_CLOSE OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [SalesPracticeDB] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [SalesPracticeDB] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [SalesPracticeDB] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [SalesPracticeDB] SET READ_COMMITTED_SNAPSHOT OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET HONOR_BROKER_PRIORITY OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET RECOVERY FULL 
+GO
+ALTER DATABASE [SalesPracticeDB] SET  MULTI_USER 
+GO
+ALTER DATABASE [SalesPracticeDB] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [SalesPracticeDB] SET DB_CHAINING OFF 
+GO
+ALTER DATABASE [SalesPracticeDB] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+GO
+ALTER DATABASE [SalesPracticeDB] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+GO
+ALTER DATABASE [SalesPracticeDB] SET DELAYED_DURABILITY = DISABLED 
+GO
+ALTER DATABASE [SalesPracticeDB] SET ACCELERATED_DATABASE_RECOVERY = OFF  
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'SalesPracticeDB', N'ON'
+GO
+ALTER DATABASE [SalesPracticeDB] SET QUERY_STORE = ON
+GO
+ALTER DATABASE [SalesPracticeDB] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30), DATA_FLUSH_INTERVAL_SECONDS = 900, INTERVAL_LENGTH_MINUTES = 60, MAX_STORAGE_SIZE_MB = 1000, QUERY_CAPTURE_MODE = AUTO, SIZE_BASED_CLEANUP_MODE = AUTO, MAX_PLANS_PER_QUERY = 200, WAIT_STATS_CAPTURE_MODE = ON)
+GO
+USE [SalesPracticeDB]
+GO
+/****** Object:  User [test]    Script Date: 27/05/2024 1:22:28 PM ******/
+CREATE USER [test] FOR LOGIN [test] WITH DEFAULT_SCHEMA=[dbo]
+GO
+/****** Object:  Table [dbo].[DEPARTMENT]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DEPARTMENT](
+	[DepartmentID] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentSubTypeID] [int] NOT NULL,
+	[DepartmentName] [varchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[DepartmentID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PRODUCT]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PRODUCT](
+	[ProductID] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentID] [int] NOT NULL,
+	[ProductName] [varchar](100) NOT NULL,
+	[Price] [decimal](10, 2) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ProductID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[SALEITEM]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[SALEITEM](
+	[SaleItemID] [int] IDENTITY(1,1) NOT NULL,
+	[SaleID] [int] NOT NULL,
+	[ProductID] [int] NOT NULL,
+	[Quantity] [int] NOT NULL,
+	[LineTotal] [decimal](10, 2) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[SaleItemID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[ProductSalesRunningTotal]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductSalesRunningTotal] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    SI.LineTotal,
+	COUNT(SI.Quantity) AS Quantity,
+    SUM(SI.LineTotal) OVER (PARTITION BY P.DepartmentID ORDER BY SI.LineTotal ASC) AS RunningTotal
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID
+INNER JOIN 
+	SaleItem AS SI ON P.ProductID = SI.ProductID 
+GROUP BY 
+	P.ProductName,
+	D.DepartmentName,
+	SI.LineTotal,
+	P.DepartmentID
+GO
+/****** Object:  Table [dbo].[DEPARTMENTSUBTYPE]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DEPARTMENTSUBTYPE](
+	[DepartmentSubTypeID] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentTypeID] [int] NOT NULL,
+	[DepartmentSubTypeName] [varchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[DepartmentSubTypeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[Beverage]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[Beverage] AS 
+SELECT 
+P.ProductID,
+P.ProductName, 
+D.DepartmentName
+FROM 
+Product AS P 
+INNER JOIN 
+Department AS D ON P.DepartmentID = D.DepartmentID 
+INNER JOIN 
+DEPARTMENTSUBTYPE AS DS ON D.DepartmentSubTypeID = DS.DepartmentSubTypeID
+WHERE DS.DepartmentTypeID = 1;
+GO
+/****** Object:  Table [dbo].[SALE]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[SALE](
+	[SaleID] [int] IDENTITY(1,1) NOT NULL,
+	[MemberID] [int] NULL,
+	[TerminalID] [int] NOT NULL,
+	[MediaID] [int] NOT NULL,
+	[SaleDate] [datetime] NOT NULL,
+	[TotalAmount] [decimal](10, 2) NOT NULL,
+	[TableID] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[SaleID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[MonthlySalesTotal]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[MonthlySalesTotal] AS 
+SELECT 
+Year(SaleDate) AS SaleYear,
+DATENAME(Month,SaleDate) AS SaleMonth, 
+SUM(TotalAmount) AS TotalSalesAmount, 
+COUNT(*) AS NumberOfSales 
+FROM
+	Sale
+GROUP BY 
+YEAR(saledate), 
+DATENAME(Month, SaleDate);
+GO
+/****** Object:  View [dbo].[ProductMonthlySales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductMonthlySales] AS
+SELECT TOP 100 PERCENT
+	P.ProductName,
+	D.DepartmentName,
+	YEAR(S.SaleDate) AS SaleYear,
+	DateName(Month,S.SaleDate) AS SaleMonth, 
+	SUM(SI.LineTotal) AS TotalSales, 
+	COUNT(SI.Quantity) AS Quantity 
+FROM Sale AS S 
+INNER JOIN SaleItem AS SI ON S.SaleID = SI.SaleID
+INNER JOIN Product AS P ON SI.ProductID = P.ProductID
+INNER JOIN DEPARTMENT AS D ON P.DepartmentID = D.DepartmentID
+GROUP BY
+P.ProductName,
+D.DepartmentName,
+YEAR(SaleDate),
+DATEName(Month,S.SaleDate)
+ORDER BY
+DepartmentName ASC,
+ProductName ASC
+GO
+/****** Object:  Table [dbo].[MEMBER]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[MEMBER](
+	[MemberID] [int] IDENTITY(1,1) NOT NULL,
+	[memberfirstname] [varchar](100) NOT NULL,
+	[MemberEmail] [varchar](100) NULL,
+	[membersurname] [nvarchar](50) NULL,
+	[membercode] [nvarchar](20) NULL,
+	[memberphone] [nvarchar](20) NULL,
+	[membergender] [char](1) NULL,
+	[memberdob] [date] NULL,
+	[memberdatejoined] [date] NULL,
+	[memberdateexpires] [date] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[MemberID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[ViewMemberMonthlySales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ViewMemberMonthlySales] AS 
+SELECT 
+			M.MemberCode, 
+			M.MemberFirstName,
+			M.MemberSurname, 
+			YEAR(S.SaleDate) AS SaleYear, 
+			DATENAME(Month,S.SaleDate) AS SaleMonth,
+			P.ProductName, 
+			SUM(SI.LineTotal) AS ProductAmount, 
+			COUNT(SI.Quantity) AS ProductQuantity
+		FROM 
+			Member AS M 
+		INNER JOIN 
+			Sale AS S ON M.MemberID = S.MemberID 
+		INNER JOIN 
+			SaleItem AS SI ON S.SaleID = SI.SaleID 
+		INNER JOIN 
+			Product AS P ON SI.ProductID = P.ProductID 
+		GROUP BY 
+			M.MemberCode,
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate), 
+			DATENAME(Month, S.SaleDate),
+			P.ProductName
+GO
+/****** Object:  View [dbo].[AverageProductPrice]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[AverageProductPrice] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    AVG(P.Price) OVER (PARTITION BY P.DepartmentID) AS DepartmentAverage,
+	(P.Price - (AVG(P.Price) OVER (PARTITION BY P.DepartmentID))) AS PriceDifference
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[ProductPriceRank]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductPriceRank] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    ROW_NUMBER() OVER (PARTITION BY P.DepartmentID ORDER BY Price DESC) AS DepartmentPriceRank
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[ProductRank]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductRank] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    RANK() OVER (PARTITION BY P.DepartmentID ORDER BY Price DESC) AS DepartmentPriceRank
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[ProductLAG]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductLAG] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    LAG(P.Price) OVER(PARTITION BY P.DepartmentID ORDER BY P.ProductID) AS PreviousPrice 
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[ProductLEADPrice]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductLEADPrice] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    LEAD(P.Price) OVER(PARTITION BY P.DepartmentID ORDER BY P.Price ASC) AS NextPrice
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[ProductTopPrice]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[ProductTopPrice] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    FIRST_VALUE(P.Price) OVER(PARTITION BY P.DepartmentID ORDER BY P.Price DESC) AS TopPrice
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  View [dbo].[PriceQuartiles]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[PriceQuartiles] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    NTILE(4) OVER(ORDER BY P.Price) AS PriceQuartile
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
+/****** Object:  Table [dbo].[DEPARTMENTTYPE]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DEPARTMENTTYPE](
+	[DepartmentTypeID] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentTypeName] [varchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[DepartmentTypeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[MEDIA]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[MEDIA](
+	[MediaID] [int] IDENTITY(1,1) NOT NULL,
+	[MediaType] [varchar](50) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[MediaID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Reservation]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Reservation](
+	[ReservationID] [int] IDENTITY(1,1) NOT NULL,
+	[TableID] [int] NOT NULL,
+	[ReservationDateTime] [datetime] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ReservationID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[TABLENUMBER]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[TABLENUMBER](
+	[TableID] [int] IDENTITY(1,1) NOT NULL,
+	[TableNumber] [int] NOT NULL,
+	[TableName] [nvarchar](50) NOT NULL,
+	[TableMode] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[TableID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[TERMINAL]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[TERMINAL](
+	[TerminalID] [int] IDENTITY(1,1) NOT NULL,
+	[TerminalName] [varchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[TerminalID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Index [NonClusteredIndex-20240527-105754]    Script Date: 27/05/2024 1:22:28 PM ******/
+CREATE NONCLUSTERED INDEX [NonClusteredIndex-20240527-105754] ON [dbo].[PRODUCT]
+(
+	[DepartmentID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[DEPARTMENT]  WITH CHECK ADD FOREIGN KEY([DepartmentSubTypeID])
+REFERENCES [dbo].[DEPARTMENTSUBTYPE] ([DepartmentSubTypeID])
+GO
+ALTER TABLE [dbo].[DEPARTMENTSUBTYPE]  WITH CHECK ADD FOREIGN KEY([DepartmentTypeID])
+REFERENCES [dbo].[DEPARTMENTTYPE] ([DepartmentTypeID])
+GO
+ALTER TABLE [dbo].[PRODUCT]  WITH CHECK ADD FOREIGN KEY([DepartmentID])
+REFERENCES [dbo].[DEPARTMENT] ([DepartmentID])
+GO
+ALTER TABLE [dbo].[Reservation]  WITH CHECK ADD  CONSTRAINT [FK_Reservation_TableID] FOREIGN KEY([TableID])
+REFERENCES [dbo].[TABLENUMBER] ([TableID])
+GO
+ALTER TABLE [dbo].[Reservation] CHECK CONSTRAINT [FK_Reservation_TableID]
+GO
+ALTER TABLE [dbo].[SALE]  WITH CHECK ADD FOREIGN KEY([MediaID])
+REFERENCES [dbo].[MEDIA] ([MediaID])
+GO
+ALTER TABLE [dbo].[SALE]  WITH CHECK ADD FOREIGN KEY([MemberID])
+REFERENCES [dbo].[MEMBER] ([MemberID])
+GO
+ALTER TABLE [dbo].[SALE]  WITH CHECK ADD FOREIGN KEY([TerminalID])
+REFERENCES [dbo].[TERMINAL] ([TerminalID])
+GO
+ALTER TABLE [dbo].[SALE]  WITH CHECK ADD  CONSTRAINT [FK_SALE_TableID] FOREIGN KEY([TableID])
+REFERENCES [dbo].[TABLENUMBER] ([TableID])
+GO
+ALTER TABLE [dbo].[SALE] CHECK CONSTRAINT [FK_SALE_TableID]
+GO
+ALTER TABLE [dbo].[SALEITEM]  WITH CHECK ADD FOREIGN KEY([ProductID])
+REFERENCES [dbo].[PRODUCT] ([ProductID])
+GO
+ALTER TABLE [dbo].[SALEITEM]  WITH CHECK ADD FOREIGN KEY([SaleID])
+REFERENCES [dbo].[SALE] ([SaleID])
+GO
+/****** Object:  StoredProcedure [dbo].[IndividualMemberMonthlyProductSales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[IndividualMemberMonthlyProductSales] @MemberCode VARCHAR(4) AS 
+BEGIN
+	BEGIN TRY 
+		SELECT 
+			M.MemberCode, 
+			M.MemberFirstName,
+			M.MemberSurname, 
+			YEAR(S.SaleDate) AS SaleYear, 
+			DATENAME(Month,S.SaleDate) AS SaleMonth,
+			P.ProductName, 
+			SUM(SI.LineTotal) AS ProductAmount, 
+			COUNT(SI.Quantity) AS ProductQuantity
+		FROM 
+			Member AS M 
+		INNER JOIN 
+			Sale AS S ON M.MemberID = S.MemberID 
+		INNER JOIN 
+			SaleItem AS SI ON S.SaleID = SI.SaleID 
+		INNER JOIN 
+			Product AS P ON SI.ProductID = P.ProductID 
+		WHERE 
+			M.MemberCode = @MemberCode
+		GROUP BY 
+			M.MemberCode,
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate), 
+			DATENAME(Month, S.SaleDate),
+			P.ProductName
+		END TRY
+		BEGIN CATCH 
+			PRINT 'An error occurred: ' + ERROR_MESSAGE();
+
+		END CATCH
+	END; 
+GO
+/****** Object:  StoredProcedure [dbo].[MemberMonthlySales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[MemberMonthlySales] @MemberCode varchar(4)
+AS 
+	BEGIN
+	BEGIN TRY
+		SELECT
+			M.MemberCode, 
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate) AS Year,
+			DateName(Month,S.SaleDate) AS Month,
+			SUM(S.TotalAmount) AS TotalSales,
+			COUNT(SI.Quantity) AS TotalQuantity
+		FROM 
+			Member as M 
+		INNER JOIN 
+			Sale AS S ON M.MemberID = S.MemberID 
+		INNER JOIN 
+			SaleItem AS SI ON S.SaleID = SI.SaleID 
+		WHERE 
+			M.MemberCode = @MemberCode
+		GROUP BY 
+			M.MemberCode,
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate),
+			DateName(Month, S.SaleDate)
+	END TRY
+	BEGIN CATCH 
+		Print 'An Error occurred: ' + ERROR_MESSAGE(); 
+	END CATCH; 
+END;
+
+GO
+/****** Object:  StoredProcedure [dbo].[MonthlyProductSales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE Procedure [dbo].[MonthlyProductSales] @DepartmentID INT
+AS
+SELECT 
+	P.ProductName,
+	D.DepartmentName,
+	YEAR(S.SaleDate) AS SaleYear,
+	DateName(Month,S.SaleDate) AS SaleMonth, 
+	SUM(SI.LineTotal) AS TotalSales, 
+	COUNT(SI.Quantity) AS Quantity 
+FROM Sale AS S 
+INNER JOIN SaleItem AS SI ON S.SaleID = SI.SaleID
+INNER JOIN Product AS P ON SI.ProductID = P.ProductID
+INNER JOIN DEPARTMENT AS D ON P.DepartmentID = D.DepartmentID
+WHERE D.DepartmentID = @DepartmentID
+GROUP BY
+P.ProductName,
+D.DepartmentName,
+YEAR(SaleDate),
+DATEName(Month,S.SaleDate)
+GO
+/****** Object:  StoredProcedure [dbo].[TotalMemberMonthlyProductSales]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[TotalMemberMonthlyProductSales] AS 
+BEGIN
+	BEGIN TRY 
+		SELECT 
+			M.MemberCode, 
+			M.MemberFirstName,
+			M.MemberSurname, 
+			YEAR(S.SaleDate) AS SaleYear, 
+			DATENAME(Month,S.SaleDate) AS SaleMonth,
+			P.ProductName, 
+			SUM(SI.LineTotal) AS ProductAmount, 
+			COUNT(SI.Quantity) AS ProductQuantity
+		FROM 
+			Member AS M 
+		INNER JOIN 
+			Sale AS S ON M.MemberID = S.MemberID 
+		INNER JOIN 
+			SaleItem AS SI ON S.SaleID = SI.SaleID 
+		INNER JOIN 
+			Product AS P ON SI.ProductID = P.ProductID 
+		GROUP BY 
+			M.MemberCode,
+			M.MemberFirstName,
+			M.MemberSurname,
+			YEAR(S.SaleDate), 
+			DATENAME(Month, S.SaleDate),
+			P.ProductName
+		END TRY
+		BEGIN CATCH 
+			PRINT 'An error occurred: ' + ERROR_MESSAGE();
+
+		END CATCH
+	END; 
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateMemberFirstName]    Script Date: 27/05/2024 1:22:28 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[UpdateMemberFirstName] @ExistingName VARCHAR(255), @NewName VARCHAR(255) 
+AS 
+BEGIN
+	BEGIN TRY
+UPDATE Member SET MemberFirstName = @NewName WHERE MemberFirstName = @ExistingName 
+	END TRY
+	BEGIN CATCH 
+	Print 'An error occured: ' + Error_Message() 
+	END CATCH 
+	END 
+GO
+USE [master]
+GO
+ALTER DATABASE [SalesPracticeDB] SET  READ_WRITE 
+GO
