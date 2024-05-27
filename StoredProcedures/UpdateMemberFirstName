@@ -1,0 +1,18 @@
+USE [SalesPracticeDB]
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateMemberFirstName]    Script Date: 27/05/2024 1:41:01 PM ******/
+--Author: Lauren Calvi
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[UpdateMemberFirstName] @ExistingName VARCHAR(255), @NewName VARCHAR(255) 
+AS 
+BEGIN
+	BEGIN TRY
+UPDATE Member SET MemberFirstName = @NewName WHERE MemberFirstName = @ExistingName 
+	END TRY
+	BEGIN CATCH 
+	Print 'An error occured: ' + Error_Message() 
+	END CATCH 
+	END 
