@@ -1,0 +1,273 @@
+import pyodbc
+import datetime
+import tkinter as tk
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+
+class SalesApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Sales Application")
+        self.geometry("900x400")  # Adjusted height to accommodate the order total
+
+        # Database connection settings
+        self.server = 'localhost' #Change to IP address of local computer where the database is on SSMS. These need to be on the same computer.
+        self.database = 'SalesPracticeDB'
+        self.username = 'test'
+        self.password = 'test'
+        
+        # Initialize database connection
+        self.conn = pyodbc.connect('DRIVER={SQL Server};SERVER='+self.server+';DATABASE='+self.database+';UID='+self.username+';PWD='+ self.password)
+
+        # Initialize GUI elements
+        self.department_var = tk.StringVar()
+        self.product_var = tk.StringVar()
+        self.quantity_var = tk.IntVar()
+        self.member_code_var = tk.StringVar()
+        self.media_var = tk.StringVar()
+
+        # Order details
+        self.order_details = []
+
+        self.create_widgets()
+        self.update_departments()  # Populate department dropdown initially
+        self.update_media()  # Populate media dropdown initially
+
+    def create_widgets(self):
+        # Department selection
+        tk.Label(self, text="Select Department:").grid(row=0, column=0, sticky="w")
+        self.department_dropdown = ttk.Combobox(self, textvariable=self.department_var, width=20)
+        self.department_dropdown.grid(row=0, column=1, sticky="w")
+        self.department_dropdown.bind("<<ComboboxSelected>>", self.update_products)
+
+        # Product selection
+        tk.Label(self, text="Select Product:").grid(row=1, column=0, sticky="w")
+        self.product_dropdown = ttk.Combobox(self, textvariable=self.product_var, width=20)
+        self.product_dropdown.grid(row=1, column=1, sticky="w")
+
+        # Quantity entry
+        tk.Label(self, text="Quantity:").grid(row=2, column=0, sticky="w")
+        tk.Entry(self, textvariable=self.quantity_var).grid(row=2, column=1, sticky="w")
+
+        # Add to order button
+        tk.Button(self, text="Add to Order", command=self.add_to_order).grid(row=3, column=0, columnspan=2, sticky="we")
+
+        # Order list
+        tk.Label(self, text="Order List").grid(row=0, column=2, sticky="w")
+        self.order_tree = ttk.Treeview(self, columns=("Quantity", "Description", "Line Total"), show='headings', height=10)
+        self.order_tree.grid(row=1, column=2, rowspan=4, sticky="nsew")
+        
+        self.order_tree.heading("Quantity", text="Qty")
+        self.order_tree.heading("Description", text="Description")
+        self.order_tree.heading("Line Total", text="Line Total")
+        
+        self.order_tree.column("Quantity", width=50, anchor='center')
+        self.order_tree.column("Description", width=400, anchor='w')
+        self.order_tree.column("Line Total", width=100, anchor='e')
+
+        # Order total label
+        self.order_total_var = tk.StringVar(value="Order Total: $0.00")
+        self.order_total_label = tk.Label(self, textvariable=self.order_total_var, font=('Arial', 12, 'bold'), fg='red')
+        self.order_total_label.grid(row=5, column=2, sticky="e")
+
+        # Member code entry
+        tk.Label(self, text="Member Code (optional):").grid(row=6, column=0, sticky="w")
+        tk.Entry(self, textvariable=self.member_code_var).grid(row=6, column=1, sticky="w")
+
+        # Media selection
+        tk.Label(self, text="Select Payment Media:").grid(row=7, column=0, sticky="w")
+        self.media_dropdown = ttk.Combobox(self, textvariable=self.media_var, width=20)
+        self.media_dropdown.grid(row=7, column=1, sticky="w")
+
+        # Place order button
+        tk.Button(self, text="Place Order", command=self.place_order).grid(row=8, column=0, columnspan=2, sticky="we")
+
+        # Configure styles
+        self.style_widgets()
+
+    def style_widgets(self):
+        # Configure style for dropdowns
+        self.style = ttk.Style(self)
+        self.style.configure('TCombobox', padding=5, width=7)  # Adjust padding and width
+        self.style.configure('TButton', background='#4CAF50', foreground='white', padding=5)  # Set background color, text color, and padding
+
+    def update_departments(self):
+        self.department_dropdown['values'] = self.get_departments()
+
+    def get_departments(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT DepartmentName FROM department")
+        return [row.DepartmentName for row in cursor.fetchall()]
+
+    def get_products(self):
+        selected_department = self.department_var.get()
+        department_id = self.get_department_id(selected_department)
+        if department_id is not None:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT ProductName FROM product WHERE DepartmentID = ?", (department_id,))
+            return [row.ProductName for row in cursor.fetchall()]
+        else:
+            return []
+
+    def update_products(self, event=None):
+        self.product_var.set("")  # Clear the product selection
+        self.product_dropdown['values'] = self.get_products()
+
+    def add_to_order(self):
+        product_name = self.product_var.get()
+        quantity = self.quantity_var.get()
+        if product_name and quantity:
+            selected_department = self.department_var.get()
+            selected_department_id = self.get_department_id(selected_department)
+            self.add_sale_detail(product_name, quantity, selected_department_id)
+            self.update_order_list()
+            self.update_order_total()
+
+    def update_order_list(self):
+        self.order_tree.delete(*self.order_tree.get_children())
+        for item in self.order_details:
+            self.order_tree.insert("", "end", values=(item["Quantity"], item["ProductName"], f"${item['LineTotal']:.2f}"))
+
+    def update_order_total(self):
+        total_amount = sum(detail["LineTotal"] for detail in self.order_details)
+        self.order_total_var.set(f"Order Total: ${total_amount:.2f}")
+
+    def update_media(self):
+        self.media_dropdown['values'] = self.get_media()
+
+    def get_media(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT MediaType FROM media")
+        return [row.MediaType for row in cursor.fetchall()]
+
+    def place_order(self):
+        member_code = self.member_code_var.get()
+        selected_media = self.media_var.get()
+        
+        try:
+            # Start a new transaction
+            self.conn.autocommit = False
+            
+            # Insert sale and get the sale ID
+            sale_id = self.insert_sale(member_code, selected_media)
+
+            # Insert sale details
+            for detail in self.order_details:
+                self.add_sale_detail_to_db(sale_id, detail)
+            
+            # Commit the transaction
+            self.conn.commit()
+            
+            # Display success image in a pop-up window
+            #success_image_path = r'C:\Users\User\Desktop\DatabaseApp\GreatSuccess.PNG'
+            success_window = tk.Toplevel(self)
+            success_window.title("Success")
+            success_window.geometry("300x50")
+            success_label = tk.Label(success_window, text="Order placed successfully!")
+            success_label.pack(pady=10)
+  
+        except Exception as e:
+            self.conn.rollback()
+            messagebox.showerror("Error", f"Failed to place order: {e}")
+        finally:
+            # Clear order details and update order listbox
+            self.order_details = []
+            self.update_order_list()
+            self.update_order_total()
+            self.conn.autocommit = True
+
+    def get_department_id(self, department_name):
+        cursor = self.conn.cursor()  
+        cursor.execute("SELECT DepartmentID FROM department WHERE DepartmentName = ?", (department_name,))
+        row = cursor.fetchone()
+        cursor.close()  
+        if row:
+            return row[0]
+        else:
+            return None
+
+    def get_product_id(self, product_name, department_id):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT ProductID FROM product WHERE ProductName = ? AND DepartmentID = ?", (product_name, department_id))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            return row[0]
+        else:
+            return None
+
+    def get_member_id(self, member_code):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT MemberID FROM member WHERE MemberCode = ?", (member_code,))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            return row[0]
+        else:
+            return None
+
+    def add_sale_detail(self, product_name, quantity, selected_department_id):
+        product_id = self.get_product_id(product_name, selected_department_id)
+        if product_id is None:
+            messagebox.showerror("Error", "Product not found in selected department.")
+            return
+        
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT Price FROM product WHERE ProductID = ?", (product_id,))
+        product_price = cursor.fetchone()[0]
+        cursor.close()
+        
+        line_total = product_price * quantity
+        
+        self.order_details.append({
+            "ProductName": product_name,
+            "ProductID": product_id,
+            "Quantity": quantity,
+            "LineTotal": line_total
+        })
+
+    def add_sale_detail_to_db(self, sale_id, detail):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            INSERT INTO saleitem (SaleID, ProductID, Quantity, LineTotal)
+            VALUES (?, ?, ?, ?)
+        """, (sale_id, detail["ProductID"], detail["Quantity"], detail["LineTotal"]))
+        cursor.close()
+
+    def insert_sale(self, member_code, selected_media):
+        cursor = self.conn.cursor()
+        
+        member_id = self.get_member_id(member_code)
+        terminal_id = 1  # Assuming terminal ID 1 is for the Bar
+        
+        # Get media ID
+        if selected_media:
+            cursor.execute("SELECT MediaID FROM media WHERE MediaType = ?", (selected_media,))
+            row = cursor.fetchone()
+            if row:
+                media_id = row[0]
+            else:
+                raise Exception("Invalid media type.")
+        else:
+            media_id = None
+        
+        # Get current date and time
+        sale_datetime = datetime.datetime.now()
+        
+        # Calculate total amount
+        total_amount = sum(detail["LineTotal"] for detail in self.order_details)
+        
+        cursor.execute("""
+            INSERT INTO sale (SaleDate, MemberID, TerminalID, MediaID, TotalAmount, TableID)
+            OUTPUT inserted.SaleID  -- Retrieve SaleID immediately after insertion
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (sale_datetime, member_id, terminal_id, media_id, total_amount, None))
+        sale_id = cursor.fetchone()[0]
+        
+        cursor.close()
+        return sale_id
+
+if __name__ == "__main__":
+    app = SalesApp()
+    app.mainloop()
+
