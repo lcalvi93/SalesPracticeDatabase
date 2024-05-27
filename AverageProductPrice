@@ -1,0 +1,13 @@
+--Created by: Lauren Calvi
+CREATE VIEW [AverageProductPrice] AS 
+SELECT 
+    P.ProductName AS Product,
+	D.DepartmentName AS Department,
+    P.Price,
+    AVG(P.Price) OVER (PARTITION BY P.DepartmentID) AS DepartmentAverage,
+	(P.Price - (AVG(P.Price) OVER (PARTITION BY P.DepartmentID))) AS PriceDifference
+FROM 
+    Product AS P
+INNER JOIN 
+	Department AS D ON P.DepartmentID = D.DepartmentID;
+GO
