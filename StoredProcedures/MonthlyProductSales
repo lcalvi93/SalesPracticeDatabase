@@ -1,0 +1,27 @@
+USE [SalesPracticeDB]
+GO
+/****** Object:  StoredProcedure [dbo].[MonthlyProductSales]    Script Date: 27/05/2024 1:40:13 PM ******/
+--Author: Lauren Calvi
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER Procedure [dbo].[MonthlyProductSales] @DepartmentID INT
+AS
+SELECT 
+	P.ProductName,
+	D.DepartmentName,
+	YEAR(S.SaleDate) AS SaleYear,
+	DateName(Month,S.SaleDate) AS SaleMonth, 
+	SUM(SI.LineTotal) AS TotalSales, 
+	COUNT(SI.Quantity) AS Quantity 
+FROM Sale AS S 
+INNER JOIN SaleItem AS SI ON S.SaleID = SI.SaleID
+INNER JOIN Product AS P ON SI.ProductID = P.ProductID
+INNER JOIN DEPARTMENT AS D ON P.DepartmentID = D.DepartmentID
+WHERE D.DepartmentID = @DepartmentID
+GROUP BY
+P.ProductName,
+D.DepartmentName,
+YEAR(SaleDate),
+DATEName(Month,S.SaleDate)
